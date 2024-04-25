@@ -1,0 +1,27 @@
+name: Build and run tests
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
+  merge_group:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - run: python main.py --version
+    - run: python -m venv venv
+    - run: source venv/bin/activate
+    - run: pip install pyinstaller
+    - run: pyinstaller main.spec
+    - run: mv `ls -d dist/curseforge-modpack-downloader*` dist/curseforge-modpack-downloader
+    - run: dist/curseforge-modpack-downloader --version

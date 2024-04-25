@@ -10,7 +10,7 @@
 
 ### Download from releases
 
-<https://github.com/F33RNI/LlM-Api-Open/releases/latest>
+<https://github.com/F33RNI/curseforge-modpack-downloader/releases/latest>
 
 ### Build using PyInstaller
 
