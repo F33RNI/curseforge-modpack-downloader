@@ -342,90 +342,88 @@ def main() -> None:
                     override_file_rel = os.path.relpath(override_file, overrides_dir)
                     override_file_target = os.path.join(args.destination_dir, override_file_rel)
 
-                    # Check if file exists
-                    if os.path.exists(override_file_target):
-                        # Calculate checksums for comparing them
-                        checksum_src = file_md5(override_file)
-                        checksum_target = file_md5(override_file_target)
+                    # Copy if not exists
+                    if not os.path.exists(override_file_target):
+                        file_copy(override_file, override_file_target, rewrite=True)
+                        continue
 
-                        # Skip file if match
-                        if checksum_src == checksum_target:
-                            logging.info(f"Skipping file {override_file_rel}. Already exists")
-                            continue
+                    # Calculate checksums for comparing them
+                    checksum_src = file_md5(override_file)
+                    checksum_target = file_md5(override_file_target)
 
-                        # CLI action provided
-                        if args.skip:
-                            logging.info(f"Skipping file {override_file_rel}")
-                            continue
-                        elif args.rename:
-                            file_copy(override_file, override_file_target, rewrite=False)
-                            continue
-                        elif args.overwrite:
-                            file_copy(override_file, override_file_target, rewrite=True)
-                            continue
+                    # Skip file if match
+                    if checksum_src == checksum_target:
+                        logging.info(f"Skipping file {override_file_rel}. Already exists")
+                        continue
 
-                        # Find differences
-                        diffs = []
-                        with open(override_file_target, "r", encoding="utf-8", errors="replace") as file_old, open(
-                            override_file, "r", encoding="utf-8", errors="replace"
-                        ) as file_new:
-                            for line in unified_diff(file_old.readlines(), file_new.readlines(), lineterm=""):
-                                diffs.append(line.strip())
+                    # CLI action provided
+                    if args.skip:
+                        logging.info(f"Skipping file {override_file_rel}")
+                        continue
+                    elif args.rename:
+                        file_copy(override_file, override_file_target, rewrite=False)
+                        continue
+                    elif args.overwrite:
+                        file_copy(override_file, override_file_target, rewrite=True)
+                        continue
 
-                        # No text diffs found (strange? Not really. Maybe it's just extra new lines) -> rename to .old
-                        if len(diffs) == 0:
-                            logging.warning(
-                                f"Checksums of files {override_file_rel} don't match but no text difference found! Creating backup and overwriting"
-                            )
-                            file_copy(override_file, override_file_target, rewrite=False)
-                            logging.warning(
-                                "Please consider checking these files manually and removing unnecessary ones"
-                            )
-                            continue
+                    # Find differences
+                    diffs = []
+                    with open(override_file_target, "r", encoding="utf-8", errors="replace") as file_old, open(
+                        override_file, "r", encoding="utf-8", errors="replace"
+                    ) as file_new:
+                        for line in unified_diff(file_old.readlines(), file_new.readlines(), lineterm=""):
+                            diffs.append(line.strip())
 
-                        # Print difference and ask user
+                    # No text diffs found (strange? Not really. Maybe it's just extra new lines) -> rename to .old
+                    if len(diffs) == 0:
                         logging.warning(
-                            f"Your {override_file_rel} is different from the downloaded one. Please select what to do"
+                            f"Checksums of files {override_file_rel} don't match but no text difference found! Creating backup and overwriting"
                         )
-                        print("\nDifference:")
-                        print("\n".join(diffs).strip(), end="\n\n")
+                        file_copy(override_file, override_file_target, rewrite=False)
+                        logging.warning("Please consider checking these files manually and removing unnecessary ones")
+                        continue
+
+                    # Print difference and ask user
+                    logging.warning(
+                        f"Your {override_file_rel} is different from the downloaded one. Please select what to do"
+                    )
+                    print("\nDifference:")
+                    print("\n".join(diffs).strip(), end="\n\n")
+                    print(
+                        "[s]kip - keep your version | [o]verwrite - replace with downloaded | [r]ename old file by adding .old | [e]xit - cancel and exit (press s, o, r or e):",
+                        end=" ",
+                        flush=True,
+                    )
+                    while True:
+                        pressed_key = getch_()
+                        print(str(pressed_key), flush=True)
+                        if pressed_key and (
+                            str(pressed_key).lower() == "s"
+                            or str(pressed_key).lower() == "o"
+                            or str(pressed_key).lower() == "r"
+                            or str(pressed_key).lower() == "e"
+                        ):
+                            break
                         print(
-                            "[s]kip - keep your version | [o]verwrite - replace with downloaded | [r]ename old file by adding .old | [e]xit - cancel and exit (press s, o, r or e):",
+                            "Please select what to do: [s]kip, [o]verwrite, [r]ename or [e]xit:",
                             end=" ",
                             flush=True,
                         )
-                        while True:
-                            pressed_key = getch_()
-                            print(str(pressed_key), flush=True)
-                            if pressed_key and (
-                                str(pressed_key).lower() == "s"
-                                or str(pressed_key).lower() == "o"
-                                or str(pressed_key).lower() == "r"
-                                or str(pressed_key).lower() == "e"
-                            ):
-                                break
-                            print(
-                                "Please select what to do: [s]kip, [o]verwrite, [r]ename or [e]xit:",
-                                end=" ",
-                                flush=True,
-                            )
 
-                        # Abort requested
-                        if str(pressed_key).lower() == "e":
-                            raise KeyboardInterrupt()
+                    # Abort requested
+                    if str(pressed_key).lower() == "e":
+                        raise KeyboardInterrupt()
 
-                        # Keep user version
-                        if str(pressed_key).lower() == "s":
-                            logging.info(f"Skipping file {override_file_rel}")
-                            continue
+                    # Keep user version
+                    if str(pressed_key).lower() == "s":
+                        logging.info(f"Skipping file {override_file_rel}")
+                        continue
 
-                        # Rename
-                        if str(pressed_key).lower() == "r":
-                            file_copy(override_file, override_file_target, rewrite=False)
-
-                        # Overwrite
-                        else:
-                            file_copy(override_file, override_file_target, rewrite=True)
+                    # Rename
+                    if str(pressed_key).lower() == "r":
+                        file_copy(override_file, override_file_target, rewrite=False)
+                        continue
 
             ##################
             # Download forge #
