@@ -115,6 +115,44 @@ Difference:
 
 ----------
 
+## 🕸️ Proxy
+
+If needed, you can specify proxy in `http://ip:port` format (specify `http` even if it's `https` proxy) by defining environment variables `http_proxy` and `https_proxy`. Use `http://username:password@ip:port` format in case of proxy with authorization
+
+Example:
+
+- Linux
+
+    ```shell
+    $ export http_proxy="http://user:pass@123.45.67.89:1234"
+    $ export https_proxy="http://user:pass@123.45.67.89:1234"
+
+    $ dist/curseforge-modpack-downloader-linux-x86_64-1.0.0 https://www.curseforge.com/api/v1/mods/123456/files/1234567/download /home/test/.minecraft/versions/MyTestModPack
+    [2024-04-24 21:44:26,354] [INFO] [main] curseforge-modpack-downloader v1.0.0
+    [2024-04-24 21:44:26,354] [INFO] [main] https://github.com/F33RNI/curseforge-modpack-downloader
+    [2024-04-24 21:44:26,354] [INFO] [main] Working directory: /tmp/tmpqlzg847a
+    [2024-04-24 21:44:26,354] [INFO] [open_or_download] Downloading https://www.curseforge.com/api/v1/mods/123456/files/1234567/download
+    [2024-04-24 21:44:28,328] [INFO] [unzip_modpack] Extracting archive
+    ...
+    ```
+
+- Windows
+
+    ```shell
+    > SET http_proxy=http://user:pass@123.45.67.89:1234
+    > SET https_proxy=http://user:pass@123.45.67.89:1234
+
+    > curseforge-modpack-downloader-windows-amd64-1.0.0.exe https://www.curseforge.com/api/v1/mods/123456/files/1234567/download C:\Users\Test\Downloads\Test
+    [2024-04-24 20:52:45,985] [INFO] [main] curseforge-modpack-downloader v1.0.0
+    [2024-04-24 20:52:45,985] [INFO] [main] https://github.com/F33RNI/curseforge-modpack-downloader
+    [2024-04-24 20:52:45,985] [INFO] [main] Working directory: C:\Users\Test\AppData\Local\Temp\tmpw10x21cd
+    [2024-04-24 20:52:45,985] [INFO] [open_or_download] Downloading https://www.curseforge.com/api/v1/mods/123456/files/1234567/download
+    [2024-04-24 20:52:53,517] [INFO] [unzip_modpack] Extracting archive
+    ...
+    ```
+
+----------
+
 ## ✨ Contribution
 
 - Anyone can contribute! Just create a pull request
