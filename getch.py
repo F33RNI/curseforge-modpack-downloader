@@ -38,12 +38,17 @@ class _GetchUnix:
 
 class _GetchWindows:
     def __init__(self):
-        import msvcrt
+        import msvcrt, sys
 
     def __call__(self):
-        import msvcrt
+        import msvcrt, sys
 
-        return msvcrt.getch()
+        sys.stdin.reconfigure(encoding="utf-8")
+        char = msvcrt.getch()
+        try:
+            char.decode("utf-8")
+        except:
+            return char
 
 
 class _GetchMacCarbon:
