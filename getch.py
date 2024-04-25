@@ -46,7 +46,7 @@ class _GetchWindows:
         sys.stdin.reconfigure(encoding="utf-8")
         char = msvcrt.getch()
         try:
-            char.decode("utf-8")
+            return char.decode("utf-8")
         except:
             return char
 
