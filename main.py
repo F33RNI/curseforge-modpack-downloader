@@ -46,6 +46,8 @@ LOGGING_FORMATTER = "[%(asctime)s] [%(levelname)s] [%(funcName)s] %(message)s"
 INFO_URL = "https://api.cfwidget.com/{project_id}"
 DOWNLOAD_URL = "https://www.curseforge.com/api/v1/mods/{project_id}/files/{file_id}/download"
 FORGE_URL = "https://maven.minecraftforge.net/net/minecraftforge/forge/{game_version}-{forge_version}/forge-{game_version}-{forge_version}-installer.jar"
+FABRIC_URL = "https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.1/fabric-installer-1.0.1.jar"
+FABRIC_FILE_NAME = "fabric-installer-1.0.1.jar"
 
 MANIFEST_FILE = "manifest.json"
 MODLIST_FILE = "modlist.html"
@@ -472,7 +474,21 @@ def main() -> None:
                     with request.urlopen(request_) as response, open(destination, "w+b") as out_file:
                         shutil.copyfileobj(response, out_file)
                     logging.info(
-                        f'Forge {mod_loader_id[6:]} downloaded. Please run java -jar "{destination}" to install client and use --installServer argument to install server'
+                        f'Forge {mod_loader_id[6:]} downloaded. Please run java -jar "{destination}"'
+                        " to install client and use --installServer argument to install server"
+                    )
+
+                # Fabric
+                if mod_loader_id.startswith("fabric"):
+                    destination = os.path.join(args.destination_dir, FABRIC_FILE_NAME)
+                    logging.info(f"Downloading {FABRIC_URL} as {destination}")
+                    request_ = request.Request(FABRIC_URL, headers={"User-Agent": args.user_agent})
+                    with request.urlopen(request_) as response, open(destination, "w+b") as out_file:
+                        shutil.copyfileobj(response, out_file)
+                    logging.info(
+                        f"Fabric installer downloaded."
+                        f' Please run java -jar "{destination}" client -dir {args.destination_dir} -mcversion'
+                        f' "target minecraft version" -loader "target fabric version" to install client'
                     )
 
                 # Unknown mod loader (yet)
