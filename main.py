@@ -83,26 +83,29 @@ def file_copy(source: str, destination: str, rewrite: bool) -> None:
         destination (str): destination file path with extension
         rewrite (bool): if set False, will move existing file into destination.old
     """
-    # Create dirs if needed
-    destination_dir = os.path.dirname(destination)
-    if not os.path.exists(destination_dir):
-        logging.info(f"Creating directory {destination_dir}")
-        os.makedirs(destination_dir)
+    try:
+        # Create dirs if needed
+        destination_dir = os.path.dirname(destination)
+        if not os.path.exists(destination_dir):
+            logging.info(f"Creating directory {destination_dir}")
+            os.makedirs(destination_dir)
 
-    if not rewrite and os.path.exists(destination):
-        # Make old files even older to make sure destination.old doesn't exist
-        very_old_files = sorted(glob.glob(f"{destination}.old*"), reverse=True)
-        for very_old_file in very_old_files:
-            logging.info(f"Renaming {very_old_file} into {very_old_file}.old")
-            shutil.move(very_old_file, f"{very_old_file}.old")
+        if not rewrite and os.path.exists(destination):
+            # Make old files even older to make sure destination.old doesn't exist
+            very_old_files = sorted(glob.glob(f"{destination}.old*"), reverse=True)
+            for very_old_file in very_old_files:
+                logging.info(f"Renaming {very_old_file} into {very_old_file}.old")
+                shutil.move(very_old_file, f"{very_old_file}.old")
 
-        # Backup file
-        logging.info(f"Renaming {destination} into {destination}.old")
-        shutil.move(destination, f"{destination}.old")
+            # Backup file
+            logging.info(f"Renaming {destination} into {destination}.old")
+            shutil.move(destination, f"{destination}.old")
 
-    # Copy and replace if needed
-    logging.info(f"Copying {source} into {destination}")
-    shutil.copyfile(source, destination)
+        # Copy and replace if needed
+        logging.info(f"Copying {source} into {destination}")
+        shutil.copyfile(source, destination)
+    except Exception as e:
+        logging.error(f"Unable to copy {source} into {destination}. Please copy files manually", exc_info=e)
 
 
 def open_or_download(zip_or_url: str, temp_dir: str) -> io.IOBase:
