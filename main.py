@@ -19,7 +19,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import argparse
-from difflib import unified_diff
 import glob
 import hashlib
 import io
@@ -27,11 +26,13 @@ import json
 import logging
 import os
 import shutil
+import ssl
 import tempfile
 import time
+import zipfile
+from difflib import unified_diff
 from typing import Dict
 from urllib import request
-import zipfile
 
 from _version import __version__
 from getch import Getch
@@ -227,6 +228,13 @@ def main() -> None:
     # Log curseforge-modpack-downloader version and GitHub link
     logging.info(f"curseforge-modpack-downloader v{__version__}")
     logging.info("https://github.com/F33RNI/curseforge-modpack-downloader")
+
+    # Fix SSL: CERTIFICATE_VERIFY_FAILED
+    try:
+        logging.info("Applying SSL certificates fix")
+        ssl._create_default_https_context = ssl._create_unverified_context
+    except Exception as e:
+        logging.warning(f"Unable to apply SSL certificates fix: {e}")
 
     # Create tempdir
     with tempfile.TemporaryDirectory() as temp_dir:
