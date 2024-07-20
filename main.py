@@ -46,6 +46,7 @@ LOGGING_FORMATTER = "[%(asctime)s] [%(levelname)s] [%(funcName)s] %(message)s"
 INFO_URL = "https://api.cfwidget.com/{project_id}"
 DOWNLOAD_URL = "https://www.curseforge.com/api/v1/mods/{project_id}/files/{file_id}/download"
 FORGE_URL = "https://maven.minecraftforge.net/net/minecraftforge/forge/{game_version}-{forge_version}/forge-{game_version}-{forge_version}-installer.jar"
+FORGE_URL_OLD = "https://maven.minecraftforge.net/net/minecraftforge/forge/{game_version}-{forge_version}-{game_version}/forge-{game_version}-{forge_version}-{game_version}-installer.jar"
 FABRIC_URL = "https://maven.fabricmc.net/net/fabricmc/fabric-installer/1.0.1/fabric-installer-1.0.1.jar"
 FABRIC_FILE_NAME = "fabric-installer-1.0.1.jar"
 
@@ -471,9 +472,12 @@ def main() -> None:
 
                 # Forge
                 if mod_loader_id.startswith("forge-"):
-                    download_url = FORGE_URL.format(
-                        game_version=manifest["minecraft"]["version"], forge_version=mod_loader_id[6:]
-                    )
+                    game_version = manifest["minecraft"]["version"]
+                    if len(game_version.split(".")) > 1 and int(game_version.split(".")[1].strip()) < 8:
+                        download_url = FORGE_URL_OLD.format(game_version=game_version, forge_version=mod_loader_id[6:])
+                    else:
+                        download_url = FORGE_URL.format(game_version=game_version, forge_version=mod_loader_id[6:])
+
                     destination = download_url.split("/")[-1].strip()
                     if not destination:
                         destination = download_url.split("/")[-2].strip()
