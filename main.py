@@ -364,8 +364,14 @@ def main() -> None:
             overrides = manifest.get("overrides")
             if overrides:
                 overrides_dir = os.path.join(temp_dir, overrides)
+
+                override_file_paths = []
+                for root, _, f_names in os.walk(overrides_dir):
+                    for override_file_path in f_names:
+                        override_file_paths.append(os.path.join(root, override_file_path))
+
                 getch_ = Getch()
-                for override_file in glob.iglob(os.path.join(overrides_dir, "**", "*.*"), recursive=True):
+                for override_file in override_file_paths:
                     override_file_rel = os.path.relpath(override_file, overrides_dir)
                     override_file_target = os.path.join(args.destination_dir, override_file_rel)
 
