@@ -28,6 +28,7 @@ import logging
 import os
 import shutil
 import tempfile
+import time
 from typing import Dict
 from urllib import request
 import zipfile
@@ -50,6 +51,8 @@ MANIFEST_FILE = "manifest.json"
 MODLIST_FILE = "modlist.html"
 
 CHECKSUM_BUFFER_SIZE = 2048
+
+FILE_DOWNLOAD_MAX_ATTEMPTS = 3
 
 
 def file_md5(file_path: str) -> str:
@@ -275,14 +278,13 @@ def main() -> None:
                 elif type_ == "Shaders":
                     root_dir = "shaderpacks"
                 else:
-                    logging.warning(
-                        f"[{i + 1}/{files_total}] Unknown project type {type_}. Skipping project {project_id}"
-                    )
-                    continue
+                    root_dir = "mods"
+                    logging.warning(f"[{i + 1}/{files_total}] Unknown project type {type_}. Considering as mod...")
 
                 destination_dir = os.path.join(args.destination_dir, root_dir)
 
                 # Try to find file to download (for check) and find if we have previous versions in destination dir
+                file_size = 0
                 file_to_download_name = None
                 files_to_delete = []
                 for file_ in project_info["files"]:
@@ -290,9 +292,11 @@ def main() -> None:
                     if file_["id"] == file_id:
                         if not file_to_download_name:
                             file_to_download_name = file_["name"]
+                            file_size = file_["filesize"]
 
-                            # Exit from loop if we already have this file in destination dir
-                            if os.path.exists(os.path.join(destination_dir, file_to_download_name)):
+                            # Exit from loop if we already have this file in destination dir and it's size is equal
+                            dest_file = os.path.join(destination_dir, file_to_download_name)
+                            if os.path.exists(dest_file) and os.path.getsize(dest_file) == file_size:
                                 break
 
                     # Other versions
@@ -320,9 +324,27 @@ def main() -> None:
 
                 # Build URL and download
                 download_url = DOWNLOAD_URL.format(project_id=project_id, file_id=file_id)
-                logging.info(f"[{i + 1}/{files_total}] Downloading {download_url} as {file_to_download_name}")
-                with request.urlopen(download_url) as response, open(destination, "w+b") as out_file:
-                    shutil.copyfileobj(response, out_file)
+
+                attempts = 0
+                while True:
+                    try:
+                        attempts += 1
+                        logging.info(f"[{i + 1}/{files_total}] Downloading {download_url} as {file_to_download_name}")
+                        with request.urlopen(download_url) as response, open(destination, "w+b") as out_file:
+                            shutil.copyfileobj(response, out_file)
+                            out_file.flush()
+                            os.fsync(out_file.fileno())
+                        if not os.path.exists(destination) or os.path.getsize(destination) != file_size:
+                            raise Exception("File doesn't exists or has a wrong size")
+                        break
+                    except Exception as e:
+                        logging.error(f"Unable to download {download_url}", exc_info=e)
+
+                    if attempts >= FILE_DOWNLOAD_MAX_ATTEMPTS:
+                        raise Exception(f"Unable to download file in {FILE_DOWNLOAD_MAX_ATTEMPTS} attempts")
+
+                    time.sleep(1)
+                    logging.warning("Retrying...")
 
                 # Delete previous versions
                 for file_to_delete in files_to_delete:
