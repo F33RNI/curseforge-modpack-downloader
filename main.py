@@ -31,7 +31,6 @@ import tempfile
 import time
 import zipfile
 from difflib import unified_diff
-from typing import Dict
 from urllib import request
 
 from _version import __version__
@@ -132,7 +131,7 @@ def open_or_download(zip_or_url: str, temp_dir: str) -> io.IOBase:
     return out_file
 
 
-def unzip_modpack(archive: io.IOBase, temp_dir: str) -> Dict:
+def unzip_modpack(archive: io.IOBase, temp_dir: str) -> dict:
     """Unzips archive into temp_dir and parses manifest.json
 
     Args:
@@ -143,7 +142,7 @@ def unzip_modpack(archive: io.IOBase, temp_dir: str) -> Dict:
         Exception: in case of error
 
     Returns:
-        Dict: manifest as dictionary
+        dict: manifest as dictionary
     """
     logging.info("Extracting archive")
     with zipfile.ZipFile(archive, "r") as zip_ref:
@@ -232,7 +231,9 @@ def main() -> None:
     # Fix SSL: CERTIFICATE_VERIFY_FAILED
     try:
         logging.info("Applying SSL certificates fix")
+        # pylint: disable=protected-access
         ssl._create_default_https_context = ssl._create_unverified_context
+        # pylint: enable=protected-access
     except Exception as e:
         logging.warning(f"Unable to apply SSL certificates fix: {e}")
 

@@ -1,6 +1,9 @@
 """https://code.activestate.com/recipes/134892/
 """
 
+# pyright: reportUnusedImport=none, reportMissingImports=none
+# pylint: disable=import-outside-toplevel,unused-import,import-error,pointless-statement
+
 
 class Getch:
     """Gets a single character from standard input. Does not echo to the screen"""
@@ -21,10 +24,14 @@ class Getch:
 class _GetchUnix:
     def __init__(self):
         # import termios now or else you'll get the Unix version on the Mac
-        import tty, sys, termios
+        import sys
+        import termios
+        import tty
 
     def __call__(self):
-        import sys, tty, termios
+        import sys
+        import termios
+        import tty
 
         fd = sys.stdin.fileno()
         old_settings = termios.tcgetattr(fd)
@@ -38,10 +45,12 @@ class _GetchUnix:
 
 class _GetchWindows:
     def __init__(self):
-        import msvcrt, sys
+        import msvcrt
+        import sys
 
     def __call__(self):
-        import msvcrt, sys
+        import msvcrt
+        import sys
 
         sys.stdin.reconfigure(encoding="utf-8")
         char = msvcrt.getch()
@@ -79,5 +88,5 @@ class _GetchMacCarbon:
             # number is converted to an ASCII character with chr() and
             # returned
             #
-            what, msg, when, where, mod = Carbon.Evt.GetNextEvent(0x0008)[1]
+            _, msg, _, _, _ = Carbon.Evt.GetNextEvent(0x0008)[1]
             return chr(msg & 0x000000FF)
