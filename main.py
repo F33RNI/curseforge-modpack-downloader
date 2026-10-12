@@ -257,7 +257,12 @@ def main() -> None:
             logging.info(f"Copying {MANIFEST_FILE}")
             shutil.copyfile(os.path.join(temp_dir, MANIFEST_FILE), os.path.join(args.destination_dir, MANIFEST_FILE))
             logging.info(f"Copying {MODLIST_FILE}")
-            shutil.copyfile(os.path.join(temp_dir, MODLIST_FILE), os.path.join(args.destination_dir, MODLIST_FILE))
+            try:
+                shutil.copyfile(os.path.join(temp_dir, MODLIST_FILE), os.path.join(args.destination_dir, MODLIST_FILE))
+            except OSError:
+                # Not mandatory, skip
+                logging.warning(f"Could not find {MODLIST_FILE}, skipping...")
+
 
             ##############################################
             # Iterate and download all files in manifest #
